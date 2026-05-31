@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0a0d12">
+<title>bamobus · Live-Abfahrtstafel</title>
+<style>
+  :root{
+    --bg:#0a0d12; --panel:#11161e; --panel2:#161d27; --line:#222c39;
+    --amber:#ffb000; --amber-soft:#ffce5c; --green:#37d67a; --red:#ff5d5d;
+    --muted:#7c8ba1; --text:#e8eef6; --accent:#3aa0ff;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    background:radial-gradient(1200px 600px at 50% -10%, #16202c 0%, var(--bg) 60%);
+    color:var(--text); font-family:"Segoe UI",system-ui,-apple-system,Roboto,Arial,sans-serif;
+    min-height:100vh; -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:760px;margin:0 auto;padding:18px 14px 60px}
+
+  header{display:flex;align-items:center;gap:10px;margin:6px 0 16px}
+  header .dot{width:11px;height:11px;border-radius:50%;background:var(--green);box-shadow:0 0 10px var(--green);animation:pulse 2s infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+  header h1{font-size:18px;font-weight:700;letter-spacing:.3px;margin:0}
+  header h1 b{color:var(--amber)}
+  header .sub{color:var(--muted);font-size:12px;margin-left:auto}
+
+  .search{position:relative;margin-bottom:10px}
+  .search-row{display:flex;gap:8px}
+  .search input{
+    flex:1;width:100%;padding:14px 16px;border-radius:14px;border:1px solid var(--line);
+    background:var(--panel);color:var(--text);font-size:16px;outline:none;
+  }
+  .search input:focus{border-color:var(--amber)}
+  .gps{
+    flex:0 0 auto;border:1px solid var(--line);background:var(--panel);color:var(--amber-soft);
+    border-radius:14px;padding:0 14px;font-size:20px;cursor:pointer;display:flex;align-items:center;gap:6px;
+  }
+  .gps:hover{border-color:var(--amber)}
+  .gps .t{font-size:13px}
+  .gps.busy{opacity:.6;pointer-events:none}
+
+  .results{
+    position:absolute;top:calc(100% + 6px);left:0;right:0;z-index:20;
+    background:var(--panel2);border:1px solid var(--line);border-radius:14px;
+    overflow:hidden;box-shadow:0 18px 40px rgba(0,0,0,.5);max-height:60vh;overflow-y:auto;
+  }
+  .results .grp{padding:8px 14px;font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);background:#10151d}
+  .results button{
+    display:flex;width:100%;text-align:left;gap:10px;align-items:center;
+    background:none;border:0;color:var(--text);padding:12px 14px;cursor:pointer;font-size:15px;
+    border-bottom:1px solid var(--line);
+  }
+  .results button:last-child{border-bottom:0}
+  .results button:hover{background:#1d2735}
+  .results .ic{width:20px;text-align:center;flex:0 0 auto}
+  .results .meta{margin-left:auto;color:var(--muted);font-size:12px;white-space:nowrap}
+
+  .chips{display:flex;flex-wrap:wrap;gap:8px;margin:6px 0 18px}
+  .chip{
+    display:flex;align-items:center;gap:8px;background:var(--panel);border:1px solid var(--line);
+    color:var(--text);padding:8px 10px 8px 12px;border-radius:999px;font-size:14px;cursor:pointer;
+  }
+  .chip.active{border-color:var(--amber);color:var(--amber-soft);background:#1a2230}
+  .chip .x{color:var(--muted);font-size:16px;line-height:1;padding:0 2px;border-radius:50%}
+  .chip .x:hover{color:var(--red)}
+
+  .board{background:var(--panel);border:1px solid var(--line);border-radius:18px;overflow:hidden}
+  .board-head{display:flex;align-items:center;gap:10px;padding:14px 16px;border-bottom:1px solid var(--line);background:linear-gradient(180deg,#141b25,#10151d)}
+  .board-head h2{margin:0;font-size:16px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .board-head .meta{color:var(--muted);font-size:12px;margin-left:auto;text-align:right;white-space:nowrap}
+
+  .row{display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center;padding:13px 16px;border-bottom:1px solid var(--line)}
+  .row:last-child{border-bottom:0}
+  .line-badge{min-width:50px;font-weight:700;font-size:14px;text-align:center;padding:6px 8px;border-radius:8px;background:#243043;color:var(--amber);letter-spacing:.3px;white-space:nowrap;display:flex;align-items:center;gap:5px;justify-content:center}
+  .line-badge .mi{font-size:13px;opacity:.9}
+  .dest{min-width:0}
+  .dest .d-name{font-size:16px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .dest .d-sub{font-size:12px;color:var(--muted);margin-top:3px}
+  .dest .d-sub .delay{color:var(--red);font-weight:600}
+  .dest .d-sub .ontime{color:var(--green);font-weight:600}
+  .dest .d-sub .cancelled{color:var(--red);font-weight:700;text-transform:uppercase;letter-spacing:1px}
+  .eta{font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}
+  .eta .min{font-size:24px;font-weight:800;color:var(--amber-soft)}
+  .eta .min.now{color:var(--green)}
+  .eta .min.soon{color:var(--red)}
+  .eta .unit{font-size:11px;color:var(--muted);display:block;margin-top:-2px}
+  .eta .clock{font-size:12px;color:var(--muted);margin-top:3px}
+
+  .empty{padding:34px 16px;text-align:center;color:var(--muted);font-size:14px;line-height:1.6}
+  .empty .big{font-size:30px;margin-bottom:8px}
+  .loading{padding:24px;text-align:center;color:var(--muted);font-size:14px}
+  footer{margin-top:18px;text-align:center;color:var(--muted);font-size:11px;line-height:1.7}
+  a{color:var(--amber-soft);text-decoration:none}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <span class="dot"></span>
+    <h1>bamo<b>bus</b></h1>
+    <span class="sub" id="status">live · Baden-Württemberg</span>
+  </header>
+
+  <div class="search">
+    <div class="search-row">
+      <input id="q" type="text" placeholder="Haltestelle oder Adresse … (z. B. Stuttgart Hbf)" autocomplete="off">
+      <button class="gps" id="gps" title="Haltestellen in meiner Nähe"><span>📍</span><span class="t">Nähe</span></button>
+    </div>
+    <div class="results" id="results" style="display:none"></div>
+  </div>
+
+  <div class="chips" id="chips"></div>
+
+  <div class="board">
+    <div class="board-head">
+      <h2 id="stopName">Keine Haltestelle gewählt</h2>
+      <div class="meta" id="boardMeta"></div>
+    </div>
+    <div id="rows">
+      <div class="empty">
+        <div class="big">🚏</div>
+        Tippe eine Haltestelle oder Adresse ein – oder nutze <b>📍 Nähe</b>.<br>
+        Gespeicherte Haltestellen erscheinen als Chips und werden live verfolgt.
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    Daten: <a href="https://transitous.org" target="_blank" rel="noopener">Transitous</a> (MOTIS, DELFI/bwegt) ·
+    Live mit Echtzeit-Verspätungen · Auto-Refresh 30 s ·
+    Deine Haltestellen werden nur lokal im Browser gespeichert.
+  </footer>
+</div>
+
+<script>
+const API = "https://api.transitous.org/api/v1";
+const STORE_KEY = "bamobus_stops_v1";
+const ACTIVE_KEY = "bamobus_active_v1";
+const SHOW = 5, REFRESH_MS = 30000;
+
+let saved = load(STORE_KEY, []);          // [{id,name}]
+let activeId = load(ACTIVE_KEY, null);
+let lastDepartures = [];
+let refreshTimer, tickTimer, searchTimer;
+
+const $ = s => document.querySelector(s);
+const qInput = $("#q"), resultsEl = $("#results"), chipsEl = $("#chips"), rowsEl = $("#rows");
+
+function load(k, fb){ try{ return JSON.parse(localStorage.getItem(k)) ?? fb; }catch{ return fb; } }
+function store(k, v){ localStorage.setItem(k, JSON.stringify(v)); }
+function esc(s){ return String(s ?? "").replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+async function apiGet(path){ const r = await fetch(API + path, {headers:{Accept:"application/json"}}); if(!r.ok) throw new Error("HTTP "+r.status); return r.json(); }
+
+/* ---------- Suche (Haltestellen + Adressen) ---------- */
+qInput.addEventListener("input", () => {
+  const v = qInput.value.trim();
+  clearTimeout(searchTimer);
+  if(v.length < 2){ resultsEl.style.display="none"; return; }
+  searchTimer = setTimeout(() => geocode(v), 250);
+});
+document.addEventListener("click", e => {
+  if(!resultsEl.contains(e.target) && e.target !== qInput) resultsEl.style.display="none";
+});
+
+async function geocode(query){
+  try{
+    const data = await apiGet(`/geocode?text=${encodeURIComponent(query)}&language=de`);
+    const stops = data.filter(d => d.type === "STOP").slice(0,6);
+    const places = data.filter(d => d.type === "ADDRESS" || d.type === "PLACE").slice(0,4);
+    if(!stops.length && !places.length){ resultsEl.style.display="none"; return; }
+
+    let html = "";
+    if(stops.length){
+      html += `<div class="grp">Haltestellen</div>`;
+      html += stops.map(s =>
+        `<button data-kind="stop" data-id="${esc(s.id)}" data-name="${esc(s.name)}">
+           <span class="ic">📍</span><span>${esc(s.name)}</span>
+         </button>`).join("");
+    }
+    if(places.length){
+      html += `<div class="grp">Adressen / Orte – nächste Haltestelle finden</div>`;
+      html += places.map(p =>
+        `<button data-kind="place" data-lat="${p.lat}" data-lon="${p.lon}" data-name="${esc(p.name)}">
+           <span class="ic">${p.type==="ADDRESS"?"🏠":"📌"}</span><span>${esc(p.name)}</span>
+         </button>`).join("");
+    }
+    resultsEl.innerHTML = html;
+    resultsEl.querySelectorAll("button").forEach(b => {
+      b.onclick = () => {
+        if(b.dataset.kind === "stop"){ addStop(b.dataset.id, b.dataset.name); closeResults(); }
+        else { showNearby(+b.dataset.lat, +b.dataset.lon, b.dataset.name); }
+      };
+    });
+    resultsEl.style.display="block";
+  }catch(e){ resultsEl.style.display="none"; }
+}
+function closeResults(){ resultsEl.style.display="none"; qInput.value=""; }
+
+/* ---------- Umkreis: nächste Haltestellen ---------- */
+$("#gps").onclick = () => {
+  if(!navigator.geolocation){ alert("Dein Browser unterstützt keine Standortbestimmung."); return; }
+  const btn = $("#gps"); btn.classList.add("busy"); btn.querySelector(".t").textContent="…";
+  navigator.geolocation.getCurrentPosition(
+    pos => { btn.classList.remove("busy"); btn.querySelector(".t").textContent="Nähe";
+             showNearby(pos.coords.latitude, pos.coords.longitude, "Dein Standort"); },
+    err => { btn.classList.remove("busy"); btn.querySelector(".t").textContent="Nähe";
+             alert("Standort nicht verfügbar: " + err.message); },
+    { enableHighAccuracy:true, timeout:10000, maximumAge:30000 }
+  );
+};
+
+function haversine(a, b, c, d){
+  const R=6371000, t=x=>x*Math.PI/180;
+  const dLa=t(c-a), dLo=t(d-b);
+  const h=Math.sin(dLa/2)**2 + Math.cos(t(a))*Math.cos(t(c))*Math.sin(dLo/2)**2;
+  return 2*R*Math.asin(Math.sqrt(h));
+}
+function fmtDist(m){ return m<1000 ? Math.round(m/10)*10+" m" : (m/1000).toFixed(1).replace(".",",")+" km"; }
+
+async function showNearby(lat, lon, label){
+  resultsEl.innerHTML = `<div class="loading">📡 Suche Haltestellen nahe „${esc(label)}" …</div>`;
+  resultsEl.style.display="block";
+  try{
+    const d = 0.012; // ~1,3 km Box
+    const stops = await apiGet(`/map/stops?min=${lat-d},${lon-d}&max=${lat+d},${lon+d}`);
+    // pro Haltestellen-Name nur die nächste Instanz behalten
+    const best = new Map();
+    for(const s of stops){
+      const dist = haversine(lat, lon, s.lat, s.lon);
+      const cur = best.get(s.name);
+      if(!cur || dist < cur.dist) best.set(s.name, {id:s.stopId, name:s.name, dist});
+    }
+    const list = [...best.values()].sort((a,b)=>a.dist-b.dist).slice(0,8);
+    if(!list.length){ resultsEl.innerHTML = `<div class="loading">Keine Haltestellen in der Nähe gefunden.</div>`; return; }
+    resultsEl.innerHTML = `<div class="grp">Nächste Haltestellen · ${esc(label)}</div>` +
+      list.map(s =>
+        `<button data-id="${esc(s.id)}" data-name="${esc(s.name)}">
+           <span class="ic">🚏</span><span>${esc(s.name)}</span><span class="meta">${fmtDist(s.dist)}</span>
+         </button>`).join("");
+    resultsEl.querySelectorAll("button").forEach(b =>
+      b.onclick = () => { addStop(b.dataset.id, b.dataset.name); closeResults(); });
+  }catch(e){ resultsEl.innerHTML = `<div class="loading">⚠️ Umkreissuche fehlgeschlagen.</div>`; }
+}
+
+/* ---------- Gespeicherte Haltestellen ---------- */
+function addStop(id, name){
+  if(!saved.find(s => s.id === id)){ saved.push({id, name}); store(STORE_KEY, saved); }
+  setActive(id);
+}
+function removeStop(id, ev){
+  ev.stopPropagation();
+  saved = saved.filter(s => s.id !== id); store(STORE_KEY, saved);
+  if(activeId === id){ lastDepartures=[]; setActive(saved[0]?.id ?? null); }
+  else renderChips();
+  if(!saved.length) showEmpty();
+}
+function setActive(id){
+  activeId = id; store(ACTIVE_KEY, id); lastDepartures=[];
+  renderChips();
+  if(id) loadDepartures(); else showEmpty();
+}
+function renderChips(){
+  chipsEl.innerHTML = saved.map(s =>
+    `<div class="chip ${s.id===activeId?'active':''}" data-id="${esc(s.id)}">
+       <span class="lbl">${esc(s.name)}</span><span class="x" title="Entfernen">✕</span>
+     </div>`).join("");
+  chipsEl.querySelectorAll(".chip").forEach(c => {
+    const id = c.dataset.id;
+    c.querySelector(".lbl").onclick = () => { if(id!==activeId) setActive(id); };
+    c.querySelector(".x").onclick = e => removeStop(id, e);
+  });
+}
+
+/* ---------- Abfahrten ---------- */
+const MODE_ICON = { BUS:"🚌", TRAM:"🚊", SUBWAY:"Ⓤ", METRO:"Ⓤ", SUBURBAN:"Ⓢ",
+  REGIONAL_RAIL:"🚆", REGIONAL_FAST_RAIL:"🚆", LONG_DISTANCE:"🚄", HIGHSPEED_RAIL:"🚄",
+  NIGHT_RAIL:"🌙", FERRY:"⛴️", RAIL:"🚆" };
+
+async function loadDepartures(){
+  const stop = saved.find(s => s.id === activeId);
+  if(!stop) return showEmpty();
+  $("#stopName").textContent = stop.name;
+  if(!lastDepartures.length) rowsEl.innerHTML = `<div class="loading">⏳ Lade Abfahrten …</div>`;
+  $("#status").textContent = "lädt …";
+  try{
+    const data = await apiGet(`/stoptimes?stopId=${encodeURIComponent(stop.id)}&n=12&arriveBy=false`);
+    lastDepartures = data.stopTimes || [];
+    $("#status").textContent = "live · BW";
+    renderBoard();
+  }catch(e){
+    $("#status").textContent = "offline";
+    if(!lastDepartures.length)
+      rowsEl.innerHTML = `<div class="empty"><div class="big">⚠️</div>Abfahrten konnten nicht geladen werden.<br>Wird alle 30 s erneut versucht …</div>`;
+  }
+}
+
+function renderBoard(){
+  const now = Date.now();
+  const deps = lastDepartures
+    .map(d => {
+      const plan = d.place?.scheduledDeparture || d.place?.departure;
+      const real = d.place?.departure || plan;
+      return {...d, _t:new Date(real).getTime(), _plan:new Date(plan).getTime()};
+    })
+    .filter(d => !isNaN(d._t) && d._t > now - 60000)
+    .sort((a,b) => a._t - b._t)
+    .slice(0, SHOW);
+
+  if(!deps.length){
+    rowsEl.innerHTML = `<div class="empty"><div class="big">🌙</div>Aktuell keine Abfahrten in nächster Zeit.</div>`;
+    $("#boardMeta").textContent = stamp(); return;
+  }
+
+  rowsEl.innerHTML = deps.map(d => {
+    const mins = Math.round((d._t - now)/60000);
+    const minLabel = mins <= 0 ? "jetzt" : mins;
+    const cls = mins <= 0 ? "now" : (mins <= 2 ? "soon" : "");
+    const clock = new Date(d._t).toLocaleTimeString("de-DE",{hour:"2-digit",minute:"2-digit"});
+    const line = esc(d.routeShortName || d.displayName || "–");
+    const dir  = esc(d.headsign || "");
+    const track = (d.place?.track) ? `Gl./Steig ${esc(d.place.track)}` : "";
+    const icon = MODE_ICON[d.mode] || "🚌";
+
+    // Linienfarbe aus den Daten
+    const bg = /^[0-9a-fA-F]{6}$/.test(d.routeColor||"") ? `#${d.routeColor}` : "#243043";
+    const fg = /^[0-9a-fA-F]{6}$/.test(d.routeTextColor||"") ? `#${d.routeTextColor}` : "var(--amber)";
+
+    const delayMin = Math.round((d._t - d._plan)/60000);
+    let sub = "";
+    if(d.cancelled || d.tripCancelled || d.place?.cancelled){
+      sub = `<span class="cancelled">Fällt aus</span>`;
+    }else if(d.realTime){
+      sub = delayMin > 0 ? `<span class="delay">+${delayMin} min</span>`
+          : delayMin < 0 ? `<span class="ontime">${delayMin} min</span>`
+          : `<span class="ontime">pünktlich</span>`;
+    }else{
+      sub = `<span style="color:var(--muted)">nach Plan</span>`;
+    }
+    const sep = track ? " · " : "";
+
+    return `<div class="row">
+      <div class="line-badge" style="background:${bg};color:${fg}"><span class="mi">${icon}</span>${line}</div>
+      <div class="dest">
+        <div class="d-name">${dir || "—"}</div>
+        <div class="d-sub">${sub}${sep}${track}</div>
+      </div>
+      <div class="eta">
+        <span class="min ${cls}">${minLabel}</span>
+        ${mins>0?'<span class="unit">min</span>':''}
+        <div class="clock">${clock}</div>
+      </div>
+    </div>`;
+  }).join("");
+  $("#boardMeta").textContent = stamp();
+}
+
+function showEmpty(){
+  $("#stopName").textContent = "Keine Haltestelle gewählt";
+  $("#boardMeta").textContent = ""; lastDepartures = [];
+  rowsEl.innerHTML = `<div class="empty"><div class="big">🚏</div>Tippe eine Haltestelle oder Adresse ein – oder nutze <b>📍 Nähe</b>.</div>`;
+}
+function stamp(){ return "Stand " + new Date().toLocaleTimeString("de-DE",{hour:"2-digit",minute:"2-digit",second:"2-digit"}); }
+
+/* ---------- Timer ---------- */
+function startTimers(){
+  clearInterval(refreshTimer); clearInterval(tickTimer);
+  refreshTimer = setInterval(() => { if(activeId) loadDepartures(); }, REFRESH_MS);
+  tickTimer = setInterval(() => { if(activeId && lastDepartures.length) renderBoard(); }, 1000);
+}
+document.addEventListener("visibilitychange", () => { if(!document.hidden && activeId) loadDepartures(); });
+
+/* ---------- Start ---------- */
+renderChips();
+if(activeId && saved.find(s=>s.id===activeId)) loadDepartures();
+else if(saved.length) setActive(saved[0].id);
+else showEmpty();
+startTimers();
+</script>
+</body>
+</html>
