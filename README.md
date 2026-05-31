@@ -15,8 +15,9 @@ und Echtzeit-Verspätungen anzeigt. Fokus: **Baden-Württemberg** (funktioniert 
 - 🔴 **Echtzeit-Verspätungen** (`+X min` / „pünktlich" / „Fällt aus")
 - ★ **Linien-Favoriten** + Umschalter „Nur Favoriten"
 - 🔀 **Filter** nach Bus / S-Bahn / U-Bahn / Regio
+- 📺 **Paginator**: bei mehr als 5 Abfahrten blättert die Tafel alle 5 s automatisch weiter
 - ⛶ **Vollbild-/Kiosk-Modus** für Tablet & Monitor (mit Display-Wachhaltung per Wake-Lock)
-- 🔄 **Auto-Refresh** alle 30 s
+- 🔄 **Auto-Refresh** alle 30 s · Start-Haltestelle: **Stuttgart Hauptbahnhof**
 
 ## Nutzung
 

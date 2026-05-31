@@ -81,22 +81,35 @@
   .board-head h2{margin:0;font-size:16px;font-weight:400;color:var(--led);text-shadow:0 0 8px rgba(255,140,0,.5);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:.5px}
   .board-head .meta{color:var(--led-dim);font-size:12px;margin-left:auto;text-align:right;white-space:nowrap}
 
-  .row{display:grid;grid-template-columns:26px auto 1fr auto;gap:12px;align-items:center;
-    padding:11px 16px;border-bottom:1px solid #140d03}
-  .row:last-child{border-bottom:0}
+  /* Tabellen-Layout: feste Spalten, lange Texte werden mit … gekürzt (keine Überlappung) */
+  .deps{width:100%;border-collapse:collapse;table-layout:fixed}
+  .deps col.c-star{width:34px}
+  .deps col.c-line{width:104px}
+  .deps col.c-dest{width:auto}
+  .deps col.c-eta{width:96px}
+  .deps td{padding:11px 0;border-bottom:1px solid #140d03;vertical-align:middle;overflow:hidden}
+  .deps tr:last-child td{border-bottom:0}
+  .td-star{text-align:center;padding-left:16px!important}
+  .td-eta{padding-right:16px!important}
   .star{background:none;border:0;cursor:pointer;font-size:16px;color:var(--led-dim);line-height:1;padding:0;text-shadow:none}
   .star.on{color:var(--led);text-shadow:0 0 8px rgba(255,140,0,.6)}
-  .ln{color:var(--led);font-size:24px;font-weight:400;letter-spacing:1px;min-width:3.2ch;text-shadow:0 0 7px rgba(255,140,0,.55);white-space:nowrap}
-  .dst{min-width:0;color:var(--led);text-shadow:0 0 6px rgba(255,140,0,.45)}
-  .dst .d-name{font-size:21px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:.5px}
-  .dst .d-sub{font-size:12px;color:var(--led-dim);text-shadow:none;margin-top:2px;letter-spacing:.5px}
-  .dst .d-sub .delay{color:#ff6a3d}
-  .dst .d-sub .cancelled{color:#ff5d5d}
-  .eta{text-align:right;white-space:nowrap;color:var(--led);text-shadow:0 0 7px rgba(255,140,0,.55);font-variant-numeric:tabular-nums}
-  .eta .v{font-size:22px;letter-spacing:1px}
-  .eta .v.now{color:#ffd23d;text-shadow:0 0 9px rgba(255,200,0,.6)}
-  .eta .u{font-size:12px;color:var(--led-dim);text-shadow:none}
-  .eta .clk{font-size:11px;color:var(--led-dim);text-shadow:none;margin-top:1px}
+  .ln{color:var(--led);font-size:24px;font-weight:400;letter-spacing:1px;text-shadow:0 0 7px rgba(255,140,0,.55);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .td-dest{color:var(--led);text-shadow:0 0 6px rgba(255,140,0,.45);padding-left:12px;padding-right:12px}
+  .d-name{font-size:21px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:.5px}
+  .d-sub{font-size:12px;color:var(--led-dim);text-shadow:none;margin-top:2px;letter-spacing:.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .d-sub .delay{color:#ff6a3d}
+  .d-sub .cancelled{color:#ff5d5d}
+  .td-eta{text-align:right;white-space:nowrap;color:var(--led);text-shadow:0 0 7px rgba(255,140,0,.55);font-variant-numeric:tabular-nums}
+  .eta-v{font-size:22px;letter-spacing:1px}
+  .eta-v.now{color:#ffd23d;text-shadow:0 0 9px rgba(255,200,0,.6)}
+  .eta-u{font-size:12px;color:var(--led-dim);text-shadow:none}
+  .eta-clk{font-size:11px;color:var(--led-dim);text-shadow:none;margin-top:1px}
+
+  /* Paginator */
+  .pager{display:flex;gap:8px;justify-content:center;align-items:center;padding:10px 0 12px;background:#0a0703;border-top:1px solid #140d03}
+  .pager .dot2{width:9px;height:9px;border-radius:50%;background:#3a2705;cursor:pointer;transition:background .3s,box-shadow .3s}
+  .pager .dot2.on{background:var(--led);box-shadow:0 0 8px rgba(255,140,0,.6)}
+  .pager .pinfo{color:var(--led-dim);font-size:11px;margin-left:6px}
 
   .empty{padding:34px 16px;text-align:center;color:var(--led-dim);font-size:14px;line-height:1.6;font-family:"Share Tech Mono",monospace}
   .empty .big{font-size:30px;margin-bottom:8px}
@@ -116,15 +129,24 @@
   body.kiosk .board-head{padding:2.4vmin 3.2vmin}
   body.kiosk .board-head h2{font-size:clamp(20px,3.6vmin,52px)}
   body.kiosk .board-head .meta{font-size:clamp(14px,2.6vmin,34px)}
-  body.kiosk #rows{flex:1;display:flex;flex-direction:column;justify-content:space-evenly;padding:0}
-  body.kiosk .row{grid-template-columns:0 auto 1fr auto;gap:2.6vmin;padding:0 3.2vmin;border-bottom:1px solid #160e03}
-  body.kiosk .star{visibility:hidden;width:0;font-size:0}
-  body.kiosk .ln{font-size:clamp(30px,7.4vmin,104px);letter-spacing:2px;min-width:5ch}
-  body.kiosk .dst .d-name{font-size:clamp(26px,6.2vmin,92px)}
-  body.kiosk .dst .d-sub{font-size:clamp(13px,2.3vmin,30px);margin-top:.6vmin}
-  body.kiosk .eta .v{font-size:clamp(28px,6.8vmin,96px)}
-  body.kiosk .eta .u{font-size:clamp(13px,2.3vmin,30px)}
-  body.kiosk .eta .clk{font-size:clamp(12px,2vmin,26px)}
+  body.kiosk #rows{flex:1;display:flex;flex-direction:column}
+  body.kiosk .deps{height:100%}
+  body.kiosk .deps col.c-star{width:0}
+  body.kiosk .deps col.c-line{width:clamp(70px,16vmin,240px)}
+  body.kiosk .deps col.c-eta{width:clamp(130px,27vmin,400px)}
+  body.kiosk .deps td{padding:0 0;border-bottom:1px solid #160e03}
+  body.kiosk .td-star{padding-left:0!important;width:0}
+  body.kiosk .star{display:none}
+  body.kiosk .td-dest{padding-left:2.6vmin}
+  body.kiosk .td-eta{padding-right:3.2vmin}
+  body.kiosk .ln{font-size:clamp(30px,7.4vmin,104px);letter-spacing:2px;padding-left:3.2vmin}
+  body.kiosk .d-name{font-size:clamp(26px,6.2vmin,92px)}
+  body.kiosk .d-sub{font-size:clamp(13px,2.3vmin,30px);margin-top:.6vmin}
+  body.kiosk .eta-v{font-size:clamp(26px,6vmin,84px)}
+  body.kiosk .eta-u{font-size:clamp(13px,2.3vmin,30px)}
+  body.kiosk .eta-clk{font-size:clamp(12px,2vmin,26px)}
+  body.kiosk .pager{padding:1.4vmin 0}
+  body.kiosk .pager .dot2{width:1.3vmin;height:1.3vmin}
 </style>
 </head>
 <body>
@@ -164,6 +186,7 @@
       <div class="empty"><div class="big">🚏</div>
         Tippe eine Haltestelle oder Adresse ein – oder nutze <b>📍 Nähe</b>.</div>
     </div>
+    <div class="pager" id="pager" style="display:none"></div>
   </div>
 
   <footer>
@@ -176,7 +199,8 @@
 <script>
 const API = "https://api.transitous.org/api/v1";
 const K_STOPS="bamobus_stops_v1", K_ACTIVE="bamobus_active_v1", K_FAV="bamobus_fav_v1", K_FILTER="bamobus_filter_v1", K_FAVONLY="bamobus_favonly_v1";
-const SHOW = 6, FETCH_N = 40, REFRESH_MS = 30000;
+const PAGE = 5, FETCH_N = 40, REFRESH_MS = 30000, PAGE_MS = 5000;
+const DEFAULT_STOP = { id:"de-DELFI_de:08111:6115", name:"Stuttgart Hauptbahnhof" };
 
 let saved   = load(K_STOPS, []);     // [{id,name}]
 let activeId = load(K_ACTIVE, null);
@@ -184,10 +208,12 @@ let favs    = new Set(load(K_FAV, []));            // keys: stopId|line|headsign
 let modeOn  = load(K_FILTER, {bus:true,sbahn:true,ubahn:true,regio:true});
 let favOnly = load(K_FAVONLY, false);
 let lastDepartures = [];
-let refreshTimer, tickTimer, searchTimer;
+let boardList = [];   // gefilterte Abfahrten (alle Seiten)
+let page = 0;         // aktuelle Paginator-Seite
+let refreshTimer, tickTimer, searchTimer, pagerTimer;
 
 const $ = s => document.querySelector(s);
-const qInput=$("#q"), resultsEl=$("#results"), chipsEl=$("#chips"), rowsEl=$("#rows");
+const qInput=$("#q"), resultsEl=$("#results"), chipsEl=$("#chips"), rowsEl=$("#rows"), pagerEl=$("#pager");
 
 function load(k,fb){ try{ return JSON.parse(localStorage.getItem(k)) ?? fb; }catch{ return fb; } }
 function store(k,v){ localStorage.setItem(k, JSON.stringify(v)); }
@@ -282,12 +308,12 @@ function renderChips(){
 /* ---------- Filter / Favoriten ---------- */
 $("#filters").querySelectorAll(".fbtn[data-mode]").forEach(b=>{
   const m=b.dataset.mode; b.classList.toggle("on", !!modeOn[m]);
-  b.onclick=()=>{ modeOn[m]=!modeOn[m]; b.classList.toggle("on",modeOn[m]); store(K_FILTER,modeOn); renderBoard(); };
+  b.onclick=()=>{ modeOn[m]=!modeOn[m]; b.classList.toggle("on",modeOn[m]); store(K_FILTER,modeOn); refreshBoard(true); };
 });
 const favBtn=$("#favBtn"); favBtn.classList.toggle("on",favOnly);
-favBtn.onclick=()=>{ favOnly=!favOnly; favBtn.classList.toggle("on",favOnly); store(K_FAVONLY,favOnly); renderBoard(); };
+favBtn.onclick=()=>{ favOnly=!favOnly; favBtn.classList.toggle("on",favOnly); store(K_FAVONLY,favOnly); refreshBoard(true); };
 
-function toggleFav(key){ if(favs.has(key)) favs.delete(key); else favs.add(key); store(K_FAV,[...favs]); renderBoard(); }
+function toggleFav(key){ if(favs.has(key)) favs.delete(key); else favs.add(key); store(K_FAV,[...favs]); refreshBoard(false); }
 
 /* ---------- Abfahrten ---------- */
 async function loadDepartures(){
@@ -297,58 +323,83 @@ async function loadDepartures(){
   $("#status").textContent="lädt …";
   try{
     const data=await apiGet(`/stoptimes?stopId=${encodeURIComponent(stop.id)}&n=${FETCH_N}&arriveBy=false`);
-    lastDepartures=data.stopTimes||[]; $("#status").textContent="live · BW"; renderBoard();
+    lastDepartures=data.stopTimes||[]; $("#status").textContent="live · BW"; refreshBoard(true);
   }catch(e){ $("#status").textContent="offline";
     if(!lastDepartures.length) rowsEl.innerHTML=`<div class="empty"><div class="big">⚠️</div>Abfahrten konnten nicht geladen werden.<br>Wird alle 30 s erneut versucht …</div>`; }
 }
 
-function renderBoard(){
+// "MEX17 (19580)" -> "MEX17" (Zugnummer in Klammern entfernen)
+function cleanLine(s){ return String(s||"").replace(/\s*\(\d+\)\s*$/,"").trim(); }
+
+// Gefilterte, sortierte Liste aller anzeigbaren Abfahrten berechnen
+function computeBoard(){
   const now=Date.now();
-  const all=lastDepartures.map(d=>{
+  boardList=lastDepartures.map(d=>{
     const plan=d.place?.scheduledDeparture||d.place?.departure;
     const real=d.place?.departure||plan;
     return {...d,_t:new Date(real).getTime(),_plan:new Date(plan).getTime(),_cat:categoryOf(d.mode),_key:favKey(d,activeId)};
-  }).filter(d=>!isNaN(d._t)&&d._t>now-60000).sort((a,b)=>a._t-b._t);
+  }).filter(d=>!isNaN(d._t)&&d._t>now-60000)
+    .filter(d=>modeOn[d._cat]!==false && (!favOnly||favs.has(d._key)))
+    .sort((a,b)=>a._t-b._t);
+}
 
-  const deps=all.filter(d=>modeOn[d._cat]!==false && (!favOnly||favs.has(d._key))).slice(0,SHOW);
+// Eine Seite (max. 5 Einträge) der berechneten Liste zeichnen
+function renderPage(){
+  const now=Date.now();
+  const pages=Math.max(1, Math.ceil(boardList.length/PAGE));
+  if(page>=pages) page=0;
 
-  if(!deps.length){
+  if(!boardList.length){
     const msg=favOnly ? "Keine favorisierten Linien in nächster Zeit.<br>Tippe in einer Zeile auf ☆, um eine Linie zu favorisieren."
                       : "Keine Abfahrten – passt evtl. ein Filter nicht?";
     rowsEl.innerHTML=`<div class="empty"><div class="big">${favOnly?'★':'🌙'}</div>${msg}</div>`;
-    $("#boardMeta").textContent=stamp(); return;
+    pagerEl.style.display="none"; $("#boardMeta").textContent=stamp(); return;
   }
 
-  rowsEl.innerHTML=deps.map(d=>{
-    const mins=Math.round((d._t-now)/60000);
-    const isNow=mins<=0;
-    const line=esc(d.routeShortName||d.displayName||"–");
-    const dir=esc(d.headsign||"—");
-    const track=d.place?.track?`Gl./Steig ${esc(d.place.track)}`:"";
-    const clock=new Date(d._t).toLocaleTimeString("de-DE",{hour:"2-digit",minute:"2-digit"});
-    const delayMin=Math.round((d._t-d._plan)/60000);
-    const cancelled=d.cancelled||d.tripCancelled||d.place?.cancelled;
-    let sub="";
-    if(cancelled) sub=`<span class="cancelled">FÄLLT AUS</span>`;
-    else if(d.realTime&&delayMin>0) sub=`<span class="delay">+${delayMin} min</span>`;
-    else if(d.realTime&&delayMin<0) sub=`<span class="delay">${delayMin} min</span>`;
-    else if(d.realTime) sub=`pünktlich`;
-    else sub=`nach Plan`;
-    const sep=track?" · ":"";
-    const star=favs.has(d._key)?"★":"☆", starOn=favs.has(d._key)?"on":"";
-    const eta=isNow?`<span class="v now">sofort</span>`:`<span class="v">${mins}</span><span class="u"> min</span>`;
-    return `<div class="row">
-      <button class="star ${starOn}" data-key="${esc(d._key)}" title="Linie favorisieren">${star}</button>
-      <div class="ln">${line}</div>
-      <div class="dst"><div class="d-name">${dir}</div><div class="d-sub">${sub}${sep}${track}</div></div>
-      <div class="eta">${eta}<div class="clk">${clock}</div></div>
-    </div>`;
-  }).join("");
+  const slice=boardList.slice(page*PAGE, page*PAGE+PAGE);
+  rowsEl.innerHTML=`<table class="deps"><colgroup><col class="c-star"><col class="c-line"><col class="c-dest"><col class="c-eta"></colgroup><tbody>`+
+    slice.map(d=>{
+      const mins=Math.round((d._t-now)/60000), isNow=mins<=0;
+      const line=esc(cleanLine(d.routeShortName||d.displayName)||"–");
+      const dir=esc(d.headsign||"—");
+      const track=d.place?.track?`Gl./Steig ${esc(d.place.track)}`:"";
+      const clock=new Date(d._t).toLocaleTimeString("de-DE",{hour:"2-digit",minute:"2-digit"});
+      const delayMin=Math.round((d._t-d._plan)/60000);
+      const cancelled=d.cancelled||d.tripCancelled||d.place?.cancelled;
+      let sub="";
+      if(cancelled) sub=`<span class="cancelled">FÄLLT AUS</span>`;
+      else if(d.realTime&&delayMin>0) sub=`<span class="delay">+${delayMin} min</span>`;
+      else if(d.realTime&&delayMin<0) sub=`<span class="delay">${delayMin} min</span>`;
+      else if(d.realTime) sub=`pünktlich`;
+      else sub=`nach Plan`;
+      const sep=track?" · ":"";
+      const star=favs.has(d._key)?"★":"☆", starOn=favs.has(d._key)?"on":"";
+      const eta=isNow?`<span class="eta-v now">sofort</span>`:`<span class="eta-v">${mins}</span><span class="eta-u"> min</span>`;
+      return `<tr>
+        <td class="td-star"><button class="star ${starOn}" data-key="${esc(d._key)}" title="Linie favorisieren">${star}</button></td>
+        <td><div class="ln">${line}</div></td>
+        <td class="td-dest"><div class="d-name">${dir}</div><div class="d-sub">${sub}${sep}${track}</div></td>
+        <td class="td-eta">${eta}<div class="eta-clk">${clock}</div></td>
+      </tr>`;
+    }).join("")+`</tbody></table>`;
   rowsEl.querySelectorAll(".star").forEach(b=>b.onclick=()=>toggleFav(b.dataset.key));
+
+  // Paginator-Punkte
+  if(pages>1){
+    pagerEl.style.display="flex";
+    pagerEl.innerHTML=Array.from({length:pages},(_,i)=>`<span class="dot2 ${i===page?'on':''}" data-p="${i}"></span>`).join("")
+      +`<span class="pinfo">${page+1}/${pages} · wechselt automatisch</span>`;
+    pagerEl.querySelectorAll(".dot2").forEach(d=>d.onclick=()=>{ page=+d.dataset.p; renderPage(); });
+  }else pagerEl.style.display="none";
+
   $("#boardMeta").textContent=stamp();
 }
 
-function showEmpty(){ $("#stopName").textContent="Keine Haltestelle gewählt"; $("#boardMeta").textContent=""; lastDepartures=[];
+// Neu berechnen + zeichnen. resetPage=true springt auf Seite 1.
+function refreshBoard(resetPage){ computeBoard(); if(resetPage) page=0; renderPage(); }
+
+function showEmpty(){ $("#stopName").textContent="Keine Haltestelle gewählt"; $("#boardMeta").textContent=""; lastDepartures=[]; boardList=[]; page=0;
+  pagerEl.style.display="none";
   rowsEl.innerHTML=`<div class="empty"><div class="big">🚏</div>Tippe eine Haltestelle oder Adresse ein – oder nutze <b>📍 Nähe</b>.</div>`; }
 function stamp(){ return new Date().toLocaleTimeString("de-DE",{hour:"2-digit",minute:"2-digit",second:"2-digit"}); }
 
@@ -366,12 +417,18 @@ document.addEventListener("fullscreenchange",()=>{ if(!document.fullscreenElemen
 document.addEventListener("visibilitychange",()=>{ if(document.visibilityState==="visible"&&document.body.classList.contains("kiosk")) requestWakeLock(); });
 
 /* ---------- Timer ---------- */
-function startTimers(){ clearInterval(refreshTimer); clearInterval(tickTimer);
+function startTimers(){ clearInterval(refreshTimer); clearInterval(tickTimer); clearInterval(pagerTimer);
   refreshTimer=setInterval(()=>{ if(activeId) loadDepartures(); },REFRESH_MS);
-  tickTimer=setInterval(()=>{ if(activeId&&lastDepartures.length) renderBoard(); },1000); }
+  tickTimer=setInterval(()=>{ if(activeId&&lastDepartures.length) refreshBoard(false); },1000);
+  pagerTimer=setInterval(()=>{                       // alle 5 s eine Seite weiter
+    if(!activeId||!boardList.length) return;
+    const pages=Math.max(1,Math.ceil(boardList.length/PAGE));
+    if(pages>1){ page=(page+1)%pages; renderPage(); }
+  },PAGE_MS); }
 document.addEventListener("visibilitychange",()=>{ if(!document.hidden&&activeId) loadDepartures(); });
 
 /* ---------- Start ---------- */
+if(!saved.length){ saved=[DEFAULT_STOP]; store(K_STOPS,saved); activeId=DEFAULT_STOP.id; store(K_ACTIVE,activeId); }
 renderChips();
 if(activeId&&saved.find(s=>s.id===activeId)) loadDepartures();
 else if(saved.length) setActive(saved[0].id);
