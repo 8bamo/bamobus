@@ -16,7 +16,11 @@
     --led:#ff9b00; --led-dim:#7a4a00;
   }
   *{box-sizing:border-box}
-  html,body{margin:0;padding:0}
+  html,body{margin:0;padding:0;background:#0a0d12}
+  /* Im nativen Vollbild dunklen Hintergrund erzwingen (sonst weiß auf manchen Geräten) */
+  :fullscreen{background:#050402}
+  :-webkit-full-screen{background:#050402}
+  ::backdrop{background:#050402}
   body{
     background:radial-gradient(1200px 600px at 50% -10%, #16202c 0%, var(--bg) 60%);
     color:var(--text); font-family:"Segoe UI",system-ui,-apple-system,Roboto,Arial,sans-serif;
@@ -119,16 +123,17 @@
 
   /* === Vollbild / Kiosk-Modus (Tablet & Monitor) === */
   #kioskExit{position:fixed;top:12px;right:12px;z-index:50;display:none;
-    background:rgba(20,13,3,.65);color:var(--led);border:1px solid #3a2705;border-radius:10px;
-    font-size:20px;width:46px;height:46px;cursor:pointer;backdrop-filter:blur(2px)}
+    background:#1a1206;color:var(--led);border:1px solid #4a3206;border-radius:10px;
+    font-size:20px;width:46px;height:46px;cursor:pointer;line-height:1}
+  #kioskExit:hover{border-color:var(--led)}
   body.kiosk{overflow:hidden}
   body.kiosk #kioskExit{display:block}
   body.kiosk .wrap{max-width:none;width:100vw;height:100vh;padding:0;margin:0}
   body.kiosk header,body.kiosk .search,body.kiosk .chips,body.kiosk .filters,body.kiosk footer{display:none!important}
   body.kiosk .board{height:100vh;border:0;border-radius:0;display:flex;flex-direction:column;box-shadow:none}
-  body.kiosk .board-head{padding:2.4vmin 3.2vmin}
-  body.kiosk .board-head h2{font-size:clamp(20px,3.6vmin,52px)}
-  body.kiosk .board-head .meta{font-size:clamp(14px,2.6vmin,34px)}
+  body.kiosk .board-head{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:2vmin;padding:2.4vmin 3.2vmin}
+  body.kiosk .board-head h2{font-size:clamp(20px,3.6vmin,52px);min-width:0;margin:0}
+  body.kiosk .board-head .meta{margin:0;text-align:center;font-size:clamp(14px,2.8vmin,36px)}
   body.kiosk #rows{flex:1;display:flex;flex-direction:column}
   body.kiosk .deps{height:100%}
   body.kiosk .deps col.c-star{width:0}
