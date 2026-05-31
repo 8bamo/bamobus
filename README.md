@@ -13,6 +13,9 @@ und Echtzeit-Verspätungen anzeigt. Fokus: **Baden-Württemberg** (funktioniert 
 - 🚆 **Abfahrtstafel** mit Linienfarben, Ziel, Gleis/Steig
 - ⏱️ **Countdown in Minuten** + Uhrzeit, sekundengenau live
 - 🔴 **Echtzeit-Verspätungen** (`+X min` / „pünktlich" / „Fällt aus")
+- ★ **Linien-Favoriten** + Umschalter „Nur Favoriten"
+- 🔀 **Filter** nach Bus / S-Bahn / U-Bahn / Regio
+- ⛶ **Vollbild-/Kiosk-Modus** für Tablet & Monitor (mit Display-Wachhaltung per Wake-Lock)
 - 🔄 **Auto-Refresh** alle 30 s
 
 ## Nutzung
