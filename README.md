@@ -33,10 +33,29 @@ Es ist eine einzige statische Datei – kein Server, kein API-Key nötig.
 Öffentliche, kostenlose Routing-API **[Transitous](https://transitous.org)** (MOTIS),
 gespeist aus den offiziellen DELFI-/bwegt-Fahrplandaten inkl. Echtzeit.
 
-## Deployment (GitHub Pages)
+## Deployment
 
-Repo → **Settings → Pages → Branch: `main` / root**. Danach läuft die App unter
-`https://8bamo.github.io/bamobus/` – inklusive GPS, weil HTTPS.
+### Vercel (empfohlen)
+
+Das Repo enthält `vercel.json` (statische Auslieferung, Security-Header, `geolocation`
+erlaubt). Zwei Wege:
+
+**A) Dashboard (am einfachsten)**
+1. [vercel.com/new](https://vercel.com/new) → GitHub-Repo `8bamo/bamobus` importieren
+2. Framework: **Other**, Build Command leer, Output Directory leer (Root)
+3. **Deploy** → läuft unter `https://bamobus.vercel.app` (o. ä.), HTTPS inklusive → GPS funktioniert
+
+**B) CLI**
+```bash
+npm i -g vercel
+vercel          # Preview-Deploy
+vercel --prod   # Produktiv-Deploy
+```
+
+### GitHub Pages (Alternative)
+
+Repo → **Settings → Pages → Branch `main` / root**. Läuft dann unter
+`https://8bamo.github.io/bamobus/` – ebenfalls mit HTTPS und GPS.
 
 ---
 
